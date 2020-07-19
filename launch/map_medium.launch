@@ -1,0 +1,3 @@
+<launch>
+<node name="map" pkg="map_server" type="map_server" args="$(find path_planning)/maps/map_medium.yaml" />
+</launch>
