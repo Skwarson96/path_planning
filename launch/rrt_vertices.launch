@@ -2,5 +2,7 @@
 <include file="$(find path_planning)/launch/map_medium.launch" />
 <node name="graph_search" pkg="path_planning" type="rrt_vertices.py" output="screen" />
 <node name="points" pkg="path_planning" type="points.py" output="screen" />
-<node name="rviz" pkg="rviz" type="rviz" />
+
+<arg name="rvizconfig" default="$(find path_planning)/rviz/path_planning.rviz" /> 
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)"/> 
 </launch>
