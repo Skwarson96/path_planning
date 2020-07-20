@@ -43,6 +43,23 @@ class RRT(GridMap):
         """
 
 
+        #print("POINT: ", pos)
+        min = 1000 # duza wartosc
+        x = 0
+        y = 0
+        for i, wartosc in enumerate(self.parent):
+            odleglosc = np.sqrt((pos[0] - wartosc[0])**2 + (pos[1] - wartosc[1])**2)
+
+            if (min > odleglosc):
+                min = odleglosc
+                x = wartosc[0]
+                y = wartosc[1]
+
+        x = round(x, 4)
+        y = round(y, 4)
+        #print("CLOSEST POINT: ", closest)
+        closest = (x, y)
+
         return closest
 
     def new_pt(self, pt, closest):
