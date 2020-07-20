@@ -16,6 +16,51 @@ class RRT(GridMap):
         :param b: point in 2D
         :return: boolean
         """
+        ilosc_probek = 100
+        dlugosc = np.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]))
+
+        lista = []
+        Yc = a[1]
+        Xc = a[0]
+        step_x = abs(a[0] - b[0]) / ilosc_probek
+        step_y = abs(a[1] - b[1]) / ilosc_probek
+
+        if (b[1] > Yc):
+            Yc = ((step_y * abs(b[1] - Yc)) / (dlugosc)) + Yc
+
+        if (b[1] < Yc):
+            Yc = (-1 * ((step_y * abs(b[1] - Yc)) / (dlugosc))) + Yc
+
+        if (b[0] > Xc):
+            Xc = ((step_x * abs(b[0] - Xc)) / (dlugosc)) + Xc
+
+        if (b[0] < Xc):
+            Xc = (-1 * ((step_x * abs(b[0] - Xc)) / (dlugosc))) + Xc
+        lista.append([Xc, Yc])
+
+        for i in range(ilosc_probek - 1):
+
+            if (b[1] > Yc):
+                Yc = Yc + step_y
+            if (b[1] < Yc):
+                Yc = Yc - step_y
+            if (b[0] > Xc):
+                Xc = Xc + step_x
+            if (b[0] < Xc):
+                Xc = Xc - step_x
+
+            lista.append([Xc, Yc])
+
+        for i in range(ilosc_probek):
+            punkt = lista[i]
+            Xc = int(punkt[0] * 10)
+            Yc = int(punkt[1] * 10)
+
+            if (self.map[Yc][Xc] == 100):
+                # print("JESTEM W IF")
+                in_free_space = False
+                return in_free_space
+
         in_free_space = True
         return in_free_space
 
@@ -41,7 +86,6 @@ class RRT(GridMap):
         :param pos: point id 2D
         :return: point from graph in 2D closest to the pos
         """
-
 
         #print("POINT: ", pos)
         min = 1000 # duza wartosc
@@ -70,6 +114,8 @@ class RRT(GridMap):
         :param closest: vertex in the tree (point in 2D)
         :return: point in 2D
         """
+
+
         return pt
 
 
