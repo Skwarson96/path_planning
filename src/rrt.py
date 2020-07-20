@@ -24,7 +24,12 @@ class RRT(GridMap):
         Draws random point in 2D
         :return: point in 2D
         """
-        x = y = 0.
+        x = self.width * np.random.random(1)
+        y = self.height * np.random.random(1)
+        x = round(x, 4)
+        y = round(y, 4)
+        #point = (x, y)
+
         return np.array([x, y])
 
     def find_closest(self, pos):
@@ -36,7 +41,8 @@ class RRT(GridMap):
         :param pos: point id 2D
         :return: point from graph in 2D closest to the pos
         """
-        closest = pos
+
+
         return closest
 
     def new_pt(self, pt, closest):
@@ -58,9 +64,9 @@ class RRT(GridMap):
         Uses self.publish_search() and self.publish_path(path) to publish the search tree and the final path respectively.
         """
         self.parent[self.start] = None
-        while not rp.is_shutdown():
-            rp.sleep(0.01)
 
+        while not rp.is_shutdown():
+            rp.sleep(1.0)
 
 if __name__ == '__main__':
     rrt = RRT()
