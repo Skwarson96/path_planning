@@ -83,6 +83,12 @@ class RRT(GridMap):
         self.parent[self.start] = None
 
         while not rp.is_shutdown():
+
+            randomPoint = rrt.random_point()
+            closestPoint = rrt.find_closest(randomPoint)
+            print(randomPoint, closestPoint)
+            self.parent[(randomPoint[0], randomPoint[1])] = closestPoint
+
             rp.sleep(1.0)
 
 if __name__ == '__main__':
