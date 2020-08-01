@@ -94,16 +94,16 @@ class RRT(GridMap):
         :return: point from graph in 2D closest to the pos
         """
 
-        #print("POINT: ", pos)
         min = 1000 # duza wartosc
         min2 = 1000 # duza wartosc
         x = 0
         y = 0
+        x2 = 0
+        y2 = 0
         for i, wartosc in enumerate(self.parent):
             odleglosc = np.sqrt((pos[0] - wartosc[0]) ** 2 + (pos[1] - wartosc[1]) ** 2)
             if (min > odleglosc):
                 min = odleglosc
-                #closest = (wartosc[0], wartosc[1])
                 x = wartosc[0]
                 y = wartosc[1]
         for j, wartosc2 in enumerate(self.edge_points):
@@ -111,16 +111,19 @@ class RRT(GridMap):
             if odleglosc>odleglosc2:
                 if (min2 > odleglosc2):
                     min2 = odleglosc2
-                    x = wartosc2[0]
-                    y = wartosc2[1]
+                    x2 = wartosc2[0]
+                    y2 = wartosc2[1]
 
-
-
-
-        x = round(x, 4)
-        y = round(y, 4)
-        #print("CLOSEST POINT: ", closest)
-        closest = (x, y)
+        if x2 != 0 and y2 != 0:
+            self.parent[(x2, y2)] = (x,y)
+            self.parent[(pos[0], pos[1])] = (x2,y2)
+            x2 = round(x2, 4)
+            y2 = round(y2, 4)
+            closest = (x2, y2)
+        else:
+            x = round(x, 4)
+            y = round(y, 4)
+            closest = (x, y)
 
         return closest
 
@@ -199,7 +202,7 @@ class RRT(GridMap):
             # print(self.edge_points)
             new_point = rrt.new_pt(randomPoint, closestPoint)
             print("random", randomPoint,"closest",  closestPoint,"new", new_point)
-            print(self.edge_points)
+            # print(self.edge_points)
             self.parent[(new_point[0], new_point[1])] = closestPoint
             # print(self.parent)
             self.publish_search()
