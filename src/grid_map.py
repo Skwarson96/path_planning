@@ -15,6 +15,7 @@ class GridMap(object):
         self.width = None
         self.height = None
         self.parent = {}
+        self.edge_points = []
         rp.init_node('graph_search', log_level=rp.DEBUG)
         rp.Subscriber('map', OccupancyGrid, self.map_callback)
         rp.Subscriber('point_start', Marker, self.set_start)

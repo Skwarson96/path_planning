@@ -51,6 +51,7 @@ class RRT(GridMap):
 
             lista.append([Xc, Yc])
 
+
         # print("Mapa: ", np.shape(self.map))
         # print(self.map[0][0])
         # print("Szerokosc: ", self.width)
@@ -58,7 +59,8 @@ class RRT(GridMap):
 
 
         for i in range(ilosc_probek):
-            punkt = lista[i]
+            punkt = lista[-i]
+            self.edge_points.append([punkt[0], punkt[1]])
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
@@ -94,15 +96,26 @@ class RRT(GridMap):
 
         #print("POINT: ", pos)
         min = 1000 # duza wartosc
+        min2 = 1000 # duza wartosc
         x = 0
         y = 0
         for i, wartosc in enumerate(self.parent):
-            odleglosc = np.sqrt((pos[0] - wartosc[0])**2 + (pos[1] - wartosc[1])**2)
-
+            odleglosc = np.sqrt((pos[0] - wartosc[0]) ** 2 + (pos[1] - wartosc[1]) ** 2)
             if (min > odleglosc):
                 min = odleglosc
+                #closest = (wartosc[0], wartosc[1])
                 x = wartosc[0]
                 y = wartosc[1]
+        for j, wartosc2 in enumerate(self.edge_points):
+            odleglosc2 = np.sqrt((pos[0] - wartosc2[0]) ** 2 + (pos[1] - wartosc2[1]) ** 2)
+            if odleglosc>odleglosc2:
+                if (min2 > odleglosc2):
+                    min2 = odleglosc2
+                    x = wartosc2[0]
+                    y = wartosc2[1]
+
+
+
 
         x = round(x, 4)
         y = round(y, 4)
@@ -141,6 +154,7 @@ class RRT(GridMap):
         if (pt[0] < closest[0]):
             Xc = (-1 * ((step_x * abs(pt[0] - closest[0])) / (dlugosc))) + closest[0]
         lista.append([Xc, Yc])
+
 
         for i in range(ilosc_probek - 1):
             if (pt[1] > Yc):
@@ -181,9 +195,11 @@ class RRT(GridMap):
 
             randomPoint = rrt.random_point()
             closestPoint = rrt.find_closest(randomPoint)
-
+            rrt.check_if_valid(randomPoint, closestPoint)
+            # print(self.edge_points)
             new_point = rrt.new_pt(randomPoint, closestPoint)
             print("random", randomPoint,"closest",  closestPoint,"new", new_point)
+            print(self.edge_points)
             self.parent[(new_point[0], new_point[1])] = closestPoint
             # print(self.parent)
             self.publish_search()
