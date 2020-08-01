@@ -17,7 +17,8 @@ class RRT(GridMap):
         :return: boolean
         """
         ilosc_probek = 100
-        dlugosc = np.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]))
+
+        dlugosc = np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
         lista = []
         Yc = a[1]
@@ -39,7 +40,6 @@ class RRT(GridMap):
         lista.append([Xc, Yc])
 
         for i in range(ilosc_probek - 1):
-
             if (b[1] > Yc):
                 Yc = Yc + step_y
             if (b[1] < Yc):
@@ -51,13 +51,18 @@ class RRT(GridMap):
 
             lista.append([Xc, Yc])
 
+        # print("Mapa: ", np.shape(self.map))
+        # print(self.map[0][0])
+        # print("Szerokosc: ", self.width)
+        # print("Wysokosc: ", self.height)
+
+
         for i in range(ilosc_probek):
             punkt = lista[i]
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
             if (self.map[Yc][Xc] == 100):
-                # print("JESTEM W IF")
                 in_free_space = False
                 return in_free_space
 
@@ -114,10 +119,54 @@ class RRT(GridMap):
         :param closest: vertex in the tree (point in 2D)
         :return: point in 2D
         """
+        ilosc_probek = 100
+        dlugosc = np.sqrt((pt[0] - closest[0]) ** 2 + (pt[1] - closest[1]) ** 2)
 
+        step_x = abs(pt[0] - closest[0]) / ilosc_probek
+        step_y = abs(pt[1] - closest[1]) / ilosc_probek
 
+        Xc = 0
+        Yc = 0
+        lista = []
+
+        if (pt[1] > closest[1]):
+            Yc = ((step_y * abs(pt[1] - closest[1])) / (dlugosc)) + closest[1]
+
+        if (pt[1] < closest[1]):
+            Yc = (-1 * ((step_y * abs(pt[1] - closest[1])) / (dlugosc))) + closest[1]
+
+        if (pt[0] > closest[0]):
+            Xc = ((step_x * abs(pt[0] - closest[0])) / (dlugosc)) + closest[0]
+
+        if (pt[0] < closest[0]):
+            Xc = (-1 * ((step_x * abs(pt[0] - closest[0])) / (dlugosc))) + closest[0]
+        lista.append([Xc, Yc])
+
+        for i in range(ilosc_probek - 1):
+            if (pt[1] > Yc):
+                Yc = Yc + step_y
+            if (pt[1] < Yc):
+                Yc = Yc - step_y
+            if (pt[0] > Xc):
+                Xc = Xc + step_x
+            if (pt[0] < Xc):
+                Xc = Xc - step_x
+
+            lista.append([Xc, Yc])
+        # print(lista[0], lista[-2])
+        prev_point = closest
+
+        for i in range(len(lista)):
+            punkt = lista[i]
+            Xc = int(punkt[0] * 10)
+            Yc = int(punkt[1] * 10)
+            # print(Xc, Yc)
+            if (self.map[Yc][Xc] == 100):
+                print("testt")
+                print("prev_point",prev_point)
+                return prev_point
+            prev_point = punkt
         return pt
-
 
     def search(self):
         """
@@ -132,8 +181,18 @@ class RRT(GridMap):
 
             randomPoint = rrt.random_point()
             closestPoint = rrt.find_closest(randomPoint)
-            print(randomPoint, closestPoint)
-            self.parent[(randomPoint[0], randomPoint[1])] = closestPoint
+
+            new_point = rrt.new_pt(randomPoint, closestPoint)
+            print("random", randomPoint,"closest",  closestPoint,"new", new_point)
+            self.parent[(new_point[0], new_point[1])] = closestPoint
+            # print(self.parent)
+            self.publish_search()
+
+
+            if rrt.check_if_valid(self.end, closestPoint):
+                self.parent[(new_point[0], new_point[1])] = self.end
+                print("punkt koncowy znaleziony")
+                break
 
             rp.sleep(1.0)
 
