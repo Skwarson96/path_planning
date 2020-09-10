@@ -17,7 +17,7 @@ class RRT(GridMap):
         :return: boolean
         """
         ilosc_probek = 100
-
+        print("a",a,"b", b)
         dlugosc = np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
         lista = []
@@ -59,12 +59,22 @@ class RRT(GridMap):
 
 
         for i in range(ilosc_probek):
+            i=i+1
             punkt = lista[-i]
-            self.edge_points.append([punkt[0], punkt[1]])
+            # print(punkt)
+            # single_edge_points.append([punkt[0], punkt[1]])
+            self.edge_points.append([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
             if (self.map[Yc][Xc] == 100):
+                # usuuniecie z edge points
+                # self.edge_points.pop(0)
+                self.edge_points.remove([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
+                # if (self.map[Yc_prev][Xc_prev] == 0):
+                #     for j in range(i):
+                #         punkt = lista[-j]
+                #         self.edge_points.remove([punkt[0], punkt[1]])
                 in_free_space = False
                 return in_free_space
 
@@ -89,11 +99,9 @@ class RRT(GridMap):
         Finds the closest point in the graph (closest vertex or closes point on edge) to the pos argument
         If the point is on the edge, modifies the graph to obtain the valid graph with the new point and two new edges
         connecting existing vertices
-
         :param pos: point id 2D
         :return: point from graph in 2D closest to the pos
         """
-
         min = 1000 # duza wartosc
         min2 = 1000 # duza wartosc
         x = 0
@@ -107,24 +115,31 @@ class RRT(GridMap):
                 x = wartosc[0]
                 y = wartosc[1]
         for j, wartosc2 in enumerate(self.edge_points):
-            odleglosc2 = np.sqrt((pos[0] - wartosc2[0]) ** 2 + (pos[1] - wartosc2[1]) ** 2)
+            odleglosc2 = np.sqrt((pos[0] - wartosc2[4]) ** 2 + (pos[1] - wartosc2[5]) ** 2)
             if odleglosc>odleglosc2:
                 if (min2 > odleglosc2):
                     min2 = odleglosc2
-                    x2 = wartosc2[0]
-                    y2 = wartosc2[1]
-
+                    x2 = wartosc2[4]
+                    y2 = wartosc2[5]
         if x2 != 0 and y2 != 0:
-            self.parent[(x2, y2)] = (x,y)
-            self.parent[(pos[0], pos[1])] = (x2,y2)
-            x2 = round(x2, 4)
-            y2 = round(y2, 4)
             closest = (x2, y2)
         else:
-            x = round(x, 4)
-            y = round(y, 4)
             closest = (x, y)
+            print(self.parent)
+            return closest
 
+
+        # self.edge_points: a          b              punkt
+        #                random   closest(korzen)    edge point
+        for points in self.edge_points:
+            if (points[4] == x2) and (points[5] == y2):
+                print("points", points[0], points[1], points[2], points[3], points[4], points[5])
+                print("self.parent[",points[2], points[3],"]", self.parent[points[2], points[3]])
+
+                # self.parent.pop(points[2], points[3])
+                self.parent[(x2, y2)] = (points[2], points[3])
+                # self.parent[(points[0], points[1])] = (x2, y2)
+                # print(self.parent)
         return closest
 
     def new_pt(self, pt, closest):
@@ -170,22 +185,87 @@ class RRT(GridMap):
                 Xc = Xc - step_x
 
             lista.append([Xc, Yc])
-        # print(lista[0], lista[-2])
+        # print(lista)
         prev_point = closest
+        # print("Mapa: ", np.shape(self.map))
+        # print(self.map[0][0])
+        # print("Szerokosc: ", self.width)
+        # print("Wysokosc: ", self.height)
 
         for i in range(len(lista)):
             punkt = lista[i]
+            # print("punkt", punkt)
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
-            # print(Xc, Yc)
+            # print("Xc, Yc", Xc, Yc)
             if (self.map[Yc][Xc] == 100):
-                print("testt")
-                print("prev_point",prev_point)
-                return prev_point
+                # print("testt")
+                # print("prev_point",prev_point)
+                # punkt[0] = round(punkt[0], 4)
+                # punkt[1] = round(punkt[1], 4)
+                print("punkt", punkt)
+                return punkt
             prev_point = punkt
         return pt
 
-    def search(self):
+    def edged_points(self, randomPoint, closestPoint):
+        ilosc_probek = 100
+        a = randomPoint
+        b = closestPoint
+        print("a", a, "b", b)
+        dlugosc = np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+        lista = []
+        Yc = a[1]
+        Xc = a[0]
+        step_x = abs(a[0] - b[0]) / ilosc_probek
+        step_y = abs(a[1] - b[1]) / ilosc_probek
+
+        if (b[1] > Yc):
+            Yc = ((step_y * abs(b[1] - Yc)) / (dlugosc)) + Yc
+
+        if (b[1] < Yc):
+            Yc = (-1 * ((step_y * abs(b[1] - Yc)) / (dlugosc))) + Yc
+
+        if (b[0] > Xc):
+            Xc = ((step_x * abs(b[0] - Xc)) / (dlugosc)) + Xc
+
+        if (b[0] < Xc):
+            Xc = (-1 * ((step_x * abs(b[0] - Xc)) / (dlugosc))) + Xc
+        lista.append([Xc, Yc])
+
+        for i in range(ilosc_probek - 1):
+            if (b[1] > Yc):
+                Yc = Yc + step_y
+            if (b[1] < Yc):
+                Yc = Yc - step_y
+            if (b[0] > Xc):
+                Xc = Xc + step_x
+            if (b[0] < Xc):
+                Xc = Xc - step_x
+
+            lista.append([Xc, Yc])
+
+        # print("Mapa: ", np.shape(self.map))
+        # print(self.map[0][0])
+        # print("Szerokosc: ", self.width)
+        # print("Wysokosc: ", self.height)
+
+        for i in range(ilosc_probek):
+            i = i + 1
+            punkt = lista[-i]
+            self.edge_points.append([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
+
+            Xc = int(punkt[0] * 10)
+            Yc = int(punkt[1] * 10)
+
+            if (self.map[Yc][Xc] == 100):
+                self.edge_points.remove([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
+                return True
+
+        return False
+
+    def search(self,):
         """
         RRT search algorithm for start point self.start and desired state self.end.
         Saves the search tree in the self.parent dictionary, with key value pairs representing segments
@@ -195,25 +275,31 @@ class RRT(GridMap):
         self.parent[self.start] = None
 
         while not rp.is_shutdown():
-
+            print("----------------------------------")
             randomPoint = rrt.random_point()
+            print("RANDOM POINT", randomPoint)
             closestPoint = rrt.find_closest(randomPoint)
-            rrt.check_if_valid(randomPoint, closestPoint)
+            print("CLOSEST POINT", closestPoint)
+            rrt.edged_points(randomPoint, closestPoint)
+            # rrt.check_if_valid(randomPoint, closestPoint)
             # print(self.edge_points)
             new_point = rrt.new_pt(randomPoint, closestPoint)
-            print("random", randomPoint,"closest",  closestPoint,"new", new_point)
+            print("NEW POINT", new_point)
+            # print("random", randomPoint,"closest",  closestPoint,"new", new_point)
             # print(self.edge_points)
+            # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
             self.parent[(new_point[0], new_point[1])] = closestPoint
-            # print(self.parent)
+            print(self.parent)
+            # print(len(self.parent))
+            # print(self.edge_points)
             self.publish_search()
 
+            # if rrt.check_if_valid(self.end, closestPoint):
+            #     self.parent[(new_point[0], new_point[1])] = self.end
+            #     print("End point found")
+            #     break
 
-            if rrt.check_if_valid(self.end, closestPoint):
-                self.parent[(new_point[0], new_point[1])] = self.end
-                print("punkt koncowy znaleziony")
-                break
-
-            rp.sleep(1.0)
+            rp.sleep(0.20)
 
 if __name__ == '__main__':
     rrt = RRT()
