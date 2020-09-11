@@ -16,12 +16,14 @@ class GridMap(object):
         self.height = None
         self.parent = {}
         self.edge_points = []
+        self.points_list = []
         rp.init_node('graph_search', log_level=rp.DEBUG)
         rp.Subscriber('map', OccupancyGrid, self.map_callback)
         rp.Subscriber('point_start', Marker, self.set_start)
         rp.Subscriber('point_end', Marker, self.set_end)
         self.path_pub = rp.Publisher('path', Path, queue_size=10)
         self.search_pub = rp.Publisher('search', Marker, queue_size=10)
+        self.points_pub = rp.Publisher('points', Marker, queue_size=10)
         while self.map is None or self.start is None or self.end is None:
             rp.sleep(0.1)
         print("Object initialized!")
@@ -71,6 +73,43 @@ class GridMap(object):
             add_point(k)
             add_point(v)
         self.search_pub.publish(marker)
+
+    def publish_points(self):
+        marker = Marker()
+        for point in self.points_list:
+            p = Point()
+            p.x = point[0]
+            p.y = point[1]
+            p.z = 0.01
+            marker.points.append(p)
+
+        marker.header.frame_id = "map"
+        marker.header.stamp = rp.Time.now()
+        marker.id = 0
+        marker.type = marker.POINTS
+        marker.action = marker.ADD
+        # position
+        # marker.pose.position.x = 1
+        # marker.pose.position.y = 1
+        # marker.pose.position.z = 0.05
+        # orientation
+        # marker.pose.orientation.x = 0.0
+        # marker.pose.orientation.y = 0.0
+        # marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        # color
+        marker.color.r = 0.
+        marker.color.g = 0.1
+        marker.color.b = 0.1
+        marker.color.a = 0.5
+        # scale
+        marker.scale.x = 0.01
+        marker.scale.y = 0.01
+        marker.scale.z = 0.01
+
+        self.points_pub.publish(marker)
+
+
 
     def publish_path(self, path):
         path_msg = Path()
