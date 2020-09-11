@@ -17,6 +17,7 @@ class GridMap(object):
         self.parent = {}
         self.edge_points = []
         self.points_list = []
+        self.prm_points_to_connection = []
         rp.init_node('graph_search', log_level=rp.DEBUG)
         rp.Subscriber('map', OccupancyGrid, self.map_callback)
         rp.Subscriber('point_start', Marker, self.set_start)
@@ -24,6 +25,7 @@ class GridMap(object):
         self.path_pub = rp.Publisher('path', Path, queue_size=10)
         self.search_pub = rp.Publisher('search', Marker, queue_size=10)
         self.points_pub = rp.Publisher('points', Marker, queue_size=10)
+        self.prm_connections_pub = rp.Publisher('connections', Marker, queue_size=10)
         while self.map is None or self.start is None or self.end is None:
             rp.sleep(0.1)
         print("Object initialized!")
@@ -74,6 +76,32 @@ class GridMap(object):
             add_point(v)
         self.search_pub.publish(marker)
 
+
+    def prm_publish_connections(self):
+        marker = Marker()
+        def add_point(p):
+            pt = Point()
+            pt.x = p[0]
+            pt.y = p[1]
+            pt.z = 0.
+            marker.points.append(pt)
+        marker.header.frame_id = "map"
+        marker.header.stamp = rp.Time.now()
+        marker.id = 0
+        marker.type = Marker.LINE_LIST
+        marker.color.r = 0.
+        marker.color.g = 0.
+        marker.color.b = 1.
+        marker.color.a = 0.5
+        marker.scale.x = 0.1 * self.resolution
+
+        for point1, point2 in self.prm_points_to_connection:
+            add_point(point1)
+            add_point(point2)
+        self.prm_connections_pub.publish(marker)
+
+
+
     def publish_points(self):
         marker = Marker()
         for point in self.points_list:
@@ -88,14 +116,6 @@ class GridMap(object):
         marker.id = 0
         marker.type = marker.POINTS
         marker.action = marker.ADD
-        # position
-        # marker.pose.position.x = 1
-        # marker.pose.position.y = 1
-        # marker.pose.position.z = 0.05
-        # orientation
-        # marker.pose.orientation.x = 0.0
-        # marker.pose.orientation.y = 0.0
-        # marker.pose.orientation.z = 0.0
         marker.pose.orientation.w = 1.0
         # color
         marker.color.r = 0.
@@ -108,8 +128,6 @@ class GridMap(object):
         marker.scale.z = 0.01
 
         self.points_pub.publish(marker)
-
-
 
     def publish_path(self, path):
         path_msg = Path()
