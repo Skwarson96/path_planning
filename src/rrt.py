@@ -17,7 +17,7 @@ class RRT(GridMap):
         :return: boolean
         """
         ilosc_probek = 100
-        print("a",a,"b", b)
+        # print("a",a,"b", b)
         dlugosc = np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
         lista = []
@@ -51,30 +51,13 @@ class RRT(GridMap):
 
             lista.append([Xc, Yc])
 
-
-        # print("Mapa: ", np.shape(self.map))
-        # print(self.map[0][0])
-        # print("Szerokosc: ", self.width)
-        # print("Wysokosc: ", self.height)
-
-
         for i in range(ilosc_probek):
             i=i+1
             punkt = lista[-i]
-            # print(punkt)
-            # single_edge_points.append([punkt[0], punkt[1]])
-            self.edge_points.append([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
             if (self.map[Yc][Xc] == 100):
-                # usuuniecie z edge points
-                # self.edge_points.pop(0)
-                self.edge_points.remove([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
-                # if (self.map[Yc_prev][Xc_prev] == 0):
-                #     for j in range(i):
-                #         punkt = lista[-j]
-                #         self.edge_points.remove([punkt[0], punkt[1]])
                 in_free_space = False
                 return in_free_space
 
@@ -125,7 +108,7 @@ class RRT(GridMap):
             closest = (x2, y2)
         else:
             closest = (x, y)
-            print(self.parent)
+            # print(self.parent)
             return closest
 
 
@@ -133,13 +116,8 @@ class RRT(GridMap):
         #                random   closest(korzen)    edge point
         for points in self.edge_points:
             if (points[4] == x2) and (points[5] == y2):
-                print("points", points[0], points[1], points[2], points[3], points[4], points[5])
-                print("self.parent[",points[2], points[3],"]", self.parent[points[2], points[3]])
-
-                # self.parent.pop(points[2], points[3])
                 self.parent[(x2, y2)] = (points[2], points[3])
-                # self.parent[(points[0], points[1])] = (x2, y2)
-                # print(self.parent)
+
         return closest
 
     def new_pt(self, pt, closest):
@@ -185,34 +163,20 @@ class RRT(GridMap):
                 Xc = Xc - step_x
 
             lista.append([Xc, Yc])
-        # print(lista)
-        prev_point = closest
-        # print("Mapa: ", np.shape(self.map))
-        # print(self.map[0][0])
-        # print("Szerokosc: ", self.width)
-        # print("Wysokosc: ", self.height)
 
         for i in range(len(lista)):
             punkt = lista[i]
-            # print("punkt", punkt)
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
-            # print("Xc, Yc", Xc, Yc)
             if (self.map[Yc][Xc] == 100):
-                # print("testt")
-                # print("prev_point",prev_point)
-                # punkt[0] = round(punkt[0], 4)
-                # punkt[1] = round(punkt[1], 4)
-                print("punkt", punkt)
                 return punkt
-            prev_point = punkt
         return pt
 
     def edged_points(self, randomPoint, closestPoint):
         ilosc_probek = 100
         a = randomPoint
         b = closestPoint
-        print("a", a, "b", b)
+        # print("a", a, "b", b)
         dlugosc = np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
         lista = []
@@ -246,16 +210,10 @@ class RRT(GridMap):
 
             lista.append([Xc, Yc])
 
-        # print("Mapa: ", np.shape(self.map))
-        # print(self.map[0][0])
-        # print("Szerokosc: ", self.width)
-        # print("Wysokosc: ", self.height)
-
         for i in range(ilosc_probek):
             i = i + 1
             punkt = lista[-i]
             self.edge_points.append([a[0], a[1], b[0], b[1], punkt[0], punkt[1]])
-
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
@@ -273,33 +231,47 @@ class RRT(GridMap):
         Uses self.publish_search() and self.publish_path(path) to publish the search tree and the final path respectively.
         """
         self.parent[self.start] = None
-
+        path = []
         while not rp.is_shutdown():
-            print("----------------------------------")
+            # print("----------------------------------")
             randomPoint = rrt.random_point()
-            print("RANDOM POINT", randomPoint)
+            # print("RANDOM POINT", randomPoint)
             closestPoint = rrt.find_closest(randomPoint)
-            print("CLOSEST POINT", closestPoint)
+            # print("CLOSEST POINT", closestPoint)
             rrt.edged_points(randomPoint, closestPoint)
-            # rrt.check_if_valid(randomPoint, closestPoint)
-            # print(self.edge_points)
             new_point = rrt.new_pt(randomPoint, closestPoint)
-            print("NEW POINT", new_point)
-            # print("random", randomPoint,"closest",  closestPoint,"new", new_point)
-            # print(self.edge_points)
+            # print("NEW POINT", new_point)
             # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
+
+
+
+
             self.parent[(new_point[0], new_point[1])] = closestPoint
-            print(self.parent)
-            # print(len(self.parent))
-            # print(self.edge_points)
+            # print(self.parent)
             self.publish_search()
 
-            # if rrt.check_if_valid(self.end, closestPoint):
-            #     self.parent[(new_point[0], new_point[1])] = self.end
-            #     print("End point found")
-            #     break
+            last_point = closestPoint
 
-            rp.sleep(0.20)
+            if rrt.check_if_valid(self.end, closestPoint):
+                self.parent[(new_point[0], new_point[1])] = self.end
+                print("End point found")
+                break
+
+            rp.sleep(0.10)
+
+
+        path.append(self.end)
+        path.append(last_point)
+        while last_point != self.start:
+            last_point = self.parent[last_point]
+            path.append(last_point)
+            if last_point == self.start:
+                break
+        self.publish_path(path)
+        print("Path printed")
+
+
+
 
 if __name__ == '__main__':
     rrt = RRT()
