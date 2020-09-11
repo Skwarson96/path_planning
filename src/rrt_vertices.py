@@ -61,15 +61,12 @@ class RRT(GridMap):
             Xc = int(punkt[0] * 10)
             Yc = int(punkt[1] * 10)
 
-            #print("X: " , Xc," Y: ", Yc)
-
             #print("Mapa: ", np.shape(self.map))
             #print(self.map[0][0])
             #print("Szerokosc: ", self.width)
             #print("Wysokosc: ", self.height)
 
             if (self.map[Yc][Xc] == 100):
-                #print("JESTEM W IF")
                 in_free_space = False
                 return in_free_space
 
@@ -83,14 +80,10 @@ class RRT(GridMap):
         Draws random point in 2D
         :return: point in 2D
         """
-        x = y = 0.
-
-        #print(self.width, self.height)
         x = self.width * np.random.random(1)
         y = self.height * np.random.random(1)
         x = round(x, 4)
         y = round(y, 4)
-
         punkt = (x, y)
 
         return punkt
@@ -102,32 +95,24 @@ class RRT(GridMap):
         :param pos: point id 2D
         :return: vertex from graph in 2D closest to the pos
         """
-        # dostaje pos i mam znalezc najblizszy punkt temu pos i zapisac jako closest
         pkt = pos
         punkt = (pkt[0], pkt[1])
-        #print("PUNKT: ", punkt)
+
         min = 1000 # duza wartosc
         x = 0
         y = 0
         for i, wartosc in enumerate(self.parent):
-            #print(wartosc)
-
             odleglosc = np.sqrt((punkt[0] - wartosc[0]) * (punkt[0] - wartosc[0]) + (punkt[1] - wartosc[1]) * (punkt[1] - wartosc[1]))
 
             if (min > odleglosc):
                 min = odleglosc
-                #closest = (wartosc[0], wartosc[1])
                 x = wartosc[0]
                 y = wartosc[1]
 
         x = round(x, 4)
         y = round(y, 4)
-        #print("CLOSEST POINT: ", closest)
         closest = (x, y)
         return closest
-            #print(closest)
-
-            #return closest
 
     def new_pt(self, pt, closest):
         """
@@ -154,7 +139,6 @@ class RRT(GridMap):
         Xc = round(Xc, 4)
         Yc = round(Yc, 4)
         pt = (Xc, Yc)
-        #print("Step point: ", pt)
         return pt
 
     def search(self):
@@ -168,7 +152,6 @@ class RRT(GridMap):
         # self.parent { klucz,                wartosc   }
         # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
 
-
         #           KLUCZ         WARTOSC
         self.parent[self.start] = None
         path = []
@@ -179,8 +162,6 @@ class RRT(GridMap):
             closestPoint = rrt.find_closest(randomPoint)
 
             punkt_w_odleglosci_self_step = rrt.new_pt(randomPoint, closestPoint)
-
-
 
             if rrt.check_if_valid(punkt_w_odleglosci_self_step, closestPoint):
                 self.parent[punkt_w_odleglosci_self_step] = closestPoint
@@ -194,21 +175,16 @@ class RRT(GridMap):
 
             rp.sleep(0.1)
 
-        print("KONIEC przeszukiwania")
+        print("Search complete")
         path.append(self.end)
-        #print("End: ", self.end)
         path.append(last)
-        #print("Last ", last)
-        #print(self.parent)
         while last != self.start:
             last = self.parent[last]
             path.append(last)
             if last == self.start:
                 break
-
-        #print(path)
         self.publish_path(path)
-        print("KONIEC")
+        print("Path printed")
 
 if __name__ == '__main__':
     rrt = RRT()
