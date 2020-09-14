@@ -8,7 +8,7 @@ np.random.seed(444)
 class PRM(GridMap):
     def __init__(self):
         super(PRM, self).__init__()
-        self.step = 0.1
+        self.radius = 1.0
 
     def sampling(self, n):
         # print("Mapa: ", np.shape(self.map))
@@ -26,7 +26,7 @@ class PRM(GridMap):
             if (self.map[Yc][Xc] != 100):
                 self.points_list.append((x[0], y[0]))
 
-    def find_closest(self,r):
+    def find_closest(self,):
         distance_list = []
         for index1, point1 in enumerate(self.points_list):
             for index2, point2 in enumerate(self.points_list):
@@ -37,7 +37,7 @@ class PRM(GridMap):
                 # there is no obstacle between the points
                 # whether the distance between points was not repeated
                 # (prevents the same points from connecting a second time
-                if (distance <= r) and \
+                if (distance <= self.radius) and \
                         (point1 != point2) and \
                         prm.check_if_valid(point1, point2) and \
                         (distance not in distance_list):
@@ -93,31 +93,110 @@ class PRM(GridMap):
         in_free_space = True
         return in_free_space
 
+    # find closest points to start point
+    def closest_start(self):
+        for point1 in self.points_list:
+            distance = np.sqrt((point1[0] - self.start[0]) ** 2 + (point1[1] - self.start[1]) ** 2)
+            if (distance <= self.radius) and \
+                    (point1 != self.start) and \
+                    prm.check_if_valid(point1, self.start):
+                self.prm_points_to_connection.append((point1, self.start))
 
+    # find closest points to end point
+    def closest_end(self):
+        for point1 in self.points_list:
+            distance = np.sqrt((point1[0] - self.end[0]) ** 2 + (point1[1] - self.end[1]) ** 2)
+            if (distance <= self.radius) and \
+                    (point1 != self.end) and \
+                    prm.check_if_valid(point1, self.end):
+                self.prm_points_to_connection.append((point1, self.end))
+
+
+    def get_neighbours(self, current_point):
+        neighbours = []
+        for point1, point2 in self.prm_points_to_connection:
+            if current_point == point1:
+                neighbours.append(point2)
+            if current_point == point2:
+                neighbours.append(point1)
+        return neighbours
+
+    def find_shortest_path(self):
+
+        G = {}
+        F = {}
+        G[self.start] = 0
+        F[self.start] = np.sqrt((self.start[0] - self.end[0]) ** 2 + (self.start[1] - self.end[1]) ** 2)
+        closed_pionts = set()
+        open_points = set([self.start])
+        came_from = {}
+
+        while len(open_points) > 0:
+            current_point = None
+            current_F = None
+            for point in open_points:
+                if current_point is None or F[point] < current_F:
+                    current_F = F[point]
+                    current_point = point
+
+            if current_point == self.end:
+                path = [current_point]
+                while current_point in came_from:
+                    current_point = came_from[current_point]
+                    path.append(current_point)
+                path.reverse()
+
+                return path, F[self.end]
+
+            open_points.remove(current_point)
+            closed_pionts.add(current_point)
+
+
+            for neighbour in prm.get_neighbours(current_point):
+                # print("test3")
+                if neighbour in closed_pionts:
+                    continue
+                candidate_G = G[current_point] + np.sqrt((current_point[0] - neighbour[0]) ** 2 + (current_point[1] - neighbour[1]) ** 2)
+
+                if neighbour not in open_points:
+                    open_points.add(neighbour)
+                elif candidate_G >= G[neighbour]:
+                    continue
+
+                came_from[neighbour] = current_point
+                G[neighbour] = candidate_G
+                H = np.sqrt((neighbour[0] - self.end[0]) ** 2 + (neighbour[1] - self.end[1]) ** 2)
+                F[neighbour] = G[neighbour] + H
 
     def search(self,):
         print("PRM")
 
         self.parent[self.start] = None
-        path = []
 
         # number of samples
-        n = 200
+        n = 100
         prm.sampling(n)
 
         # show points on map
         self.publish_points()
 
 
-        r = 0.50
-        prm.find_closest(r)
+        # find closest points
+        prm.find_closest()
+
+        # add start and end points to list
+        prm.closest_start()
+        prm.closest_end()
+
+        # draw lines between points in radius
         self.prm_publish_connections()
 
-        while not rp.is_shutdown():
-            # Search for neighbors only in a limited neighborhood, radius r
 
-            rp.sleep(0.50)
-            pass
+        # A star algorithm to find shortest path
+        path = prm.find_shortest_path()
+
+        self.publish_path(path[0])
+        print("Path printed")
 
 
 if __name__ == '__main__':
