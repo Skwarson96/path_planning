@@ -1,22 +1,28 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import rospy as rp
 from grid_map import GridMap
 import numpy as np
+import sys
+from path_planning.srv import *
 
 np.random.seed(444)
+
 # Probabilistic Road Map
 class PRM(GridMap):
     def __init__(self):
         super(PRM, self).__init__()
         self.radius = 1.0
+        self.k = 6
+        self.number_of_points = 100
 
-    def sampling(self, n):
+    def sampling(self,):
         # print("Mapa: ", np.shape(self.map))
         # print(self.map[0][0])
         # print("Szerokosc: ", self.width)
         # print("Wysokosc: ", self.height)
 
-        for i in range(n):
+        for i in range(self.number_of_points):
             x = self.width * np.random.random(1)
             y = self.height * np.random.random(1)
             # print(x[0], y[0])
@@ -26,7 +32,7 @@ class PRM(GridMap):
             if (self.map[Yc][Xc] != 100):
                 self.points_list.append((x[0], y[0]))
 
-    def find_closest(self,):
+    def find_closest_in_radius(self,):
         distance_list = []
         for index1, point1 in enumerate(self.points_list):
             for index2, point2 in enumerate(self.points_list):
@@ -41,9 +47,24 @@ class PRM(GridMap):
                         (point1 != point2) and \
                         prm.check_if_valid(point1, point2) and \
                         (distance not in distance_list):
-                    # print("point1", point1, "point2", point2, "distance", distance)
                     self.prm_points_to_connection.append((point1,point2))
                 distance_list.append(distance)
+
+    def find_k_nearest(self,):
+        distance_list_with_points = []
+        checked_points = []
+        for index1, point1 in enumerate(self.points_list):
+            for index2, point2 in enumerate(self.points_list):
+                distance = np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+                if distance != 0 and prm.check_if_valid(point1, point2) and point2 not in checked_points:
+                    distance_list_with_points.append((distance, point1, point2))
+                    checked_points.append(point1)
+            if len(distance_list_with_points) > self.k-1:
+                distance_list_with_points = (sorted(distance_list_with_points))
+                for i in range(self.k):
+                    self.prm_points_to_connection.append((distance_list_with_points[i][1],distance_list_with_points[i][2]))
+
+            distance_list_with_points = []
 
     def check_if_valid(self, point1, point2):
         ilosc_probek = 100
@@ -111,7 +132,6 @@ class PRM(GridMap):
                     prm.check_if_valid(point1, self.end):
                 self.prm_points_to_connection.append((point1, self.end))
 
-
     def get_neighbours(self, current_point):
         neighbours = []
         for point1, point2 in self.prm_points_to_connection:
@@ -122,7 +142,6 @@ class PRM(GridMap):
         return neighbours
 
     def find_shortest_path(self):
-
         G = {}
         F = {}
         G[self.start] = 0
@@ -151,38 +170,36 @@ class PRM(GridMap):
             open_points.remove(current_point)
             closed_pionts.add(current_point)
 
-
             for neighbour in prm.get_neighbours(current_point):
-                # print("test3")
                 if neighbour in closed_pionts:
                     continue
                 candidate_G = G[current_point] + np.sqrt((current_point[0] - neighbour[0]) ** 2 + (current_point[1] - neighbour[1]) ** 2)
-
                 if neighbour not in open_points:
                     open_points.add(neighbour)
                 elif candidate_G >= G[neighbour]:
                     continue
-
                 came_from[neighbour] = current_point
                 G[neighbour] = candidate_G
                 H = np.sqrt((neighbour[0] - self.end[0]) ** 2 + (neighbour[1] - self.end[1]) ** 2)
                 F[neighbour] = G[neighbour] + H
+
 
     def search(self,):
         print("PRM")
 
         self.parent[self.start] = None
 
-        # number of samples
-        n = 100
-        prm.sampling(n)
+        prm.sampling()
 
         # show points on map
         self.publish_points()
 
-
         # find closest points
-        prm.find_closest()
+        # prm.find_closest_in_radius()
+
+        prm.find_k_nearest()
+
+
 
         # add start and end points to list
         prm.closest_start()
@@ -202,3 +219,8 @@ class PRM(GridMap):
 if __name__ == '__main__':
     prm = PRM()
     prm.search()
+
+
+
+
+
