@@ -13,7 +13,7 @@ class RRT_star(GridMap):
         super(RRT_star, self).__init__()
         self.parent_distance = {}
         self.step = 0.2
-        self.neighborhood_step = 0.25
+        self.neighborhood_step = 0.3
 
     def random_point(self):
         x = self.width * np.random.random(1)
@@ -113,38 +113,82 @@ class RRT_star(GridMap):
 
 
     def checking_connections(self, random_point_in_self_step):
-        cost_list = []
-        for i, value in enumerate(self.parent):
-            # calculate distance/cost from random point to every point in parent dict
-            distance = np.sqrt((random_point_in_self_step[0] - value[0]) ** 2 + (random_point_in_self_step[1] - value[1]) ** 2)
+        neighbour_list = []
+        for i, neighbour in enumerate(self.parent):
+            # calculate distance/cost from random point to neighborhod
+            distance = np.sqrt((random_point_in_self_step[0] - neighbour[0]) ** 2 + (random_point_in_self_step[1] - neighbour[1]) ** 2)
+            # choice points in self.neighborhood_step
             if distance < self.neighborhood_step:
-                # calculate cost
-                cost = distance + self.parent_distance[value]
-                # add cost to cost list
-                cost_list.append((cost, random_point_in_self_step, value))
-
+                if rrt_star.check_if_valid(random_point_in_self_step, neighbour) and neighbour != random_point_in_self_step:
+                    # calculate cost from start to neighborhod
+                    cost = distance + self.parent_distance[neighbour]
+                    # add cost to cost list
+                    neighbour_list.append((cost, random_point_in_self_step, neighbour))
+        # print("number of neighbours ", len(neighbour_list))
         # find lowes cost
-        cost_list = sorted(cost_list)
-        lowest_cost = cost_list[0][0]
+        neighbour_list = sorted(neighbour_list)
+        # if rrt_star.check_if_valid(cost_list[0][1], cost_list[0][2]):
+        lowest_cost = neighbour_list[0][0]
         # add lowest cost do cost dict
-        self.parent_distance[cost_list[0][1]] = lowest_cost
+        self.parent_distance[neighbour_list[0][1]] = lowest_cost
+        # print("random point",neighbour_list[0][1], "cost to start", lowest_cost, "distance to neighbour", lowest_cost - self.parent_distance[neighbour_list[0][2]])
         # add point with lowest cost to parent dict
-        self.parent[cost_list[0][1]] = cost_list[0][2]
+        self.parent[neighbour_list[0][1]] = neighbour_list[0][2]
+        # print("rodzic", self.parent[neighbour_list[0][1]], "tego wierzcholka ", neighbour_list[0][1] , "neighbour", neighbour_list[0][2])
+        # print("1", neighbour_list)
+
+        rrt_star.rewire(neighbour_list)
 
 
+    def rewire(self, neighbour_list):
+        '''
+        Rewire every 20 points
+        '''
+        # print(self.parent_distance)
+        # print(self.parent)
+        print("test")
+        print(len(self.parent))
+        if (len(self.parent)%20) == 0:
+            for i1, parent1 in enumerate(self.parent):
+                for i2, parent2 in enumerate(self.parent):
+                    if parent1 != self.start and parent2 != self.start:
+                        distance = np.sqrt((parent1[0] - parent2[0]) ** 2 + (
+                                    parent1[1] - parent2[1]) ** 2) + self.parent_distance[parent2]
+                        # choice points in self.neighborhood_step
+                        # print(distance, self.parent_distance[parent2], self.parent_distance[parent1])
+                        if distance < self.parent_distance[parent1]\
+                                and parent1 != parent2 \
+                                and distance < self.neighborhood_step\
+                                and rrt_star.check_if_valid(parent1, parent2):
+                            print("--------------------------------------")
+                            print(parent1, parent2, "new dist", distance, "old dist",self.parent_distance[parent1])
+                            self.parent_distance[parent1] = distance
+                            self.parent[parent1] = parent2
 
-    def chose_parent(self):
-        pass
+        print("--------------------------------------")
+
+
 
     def search(self):
         print("RRT*")
         self.parent[self.start] = None
         self.parent_distance[self.start] = 0
+        # print("test")
+        # print(self.parent)
+        # print(self.parent_distance)
         path = []
+
+        test_dic = {}
+        test_dic[(1, 2)] = 0
+        test_dic[(1, 3)] = 2
+        test_dic[(2, 2)] = 1
+        test_dic[(3, 2)] = 2
+        # print(test_dic)
 
         # self.parent { klucz,                wartosc   }
         # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
-
+        # self.parent[key] = value
+        # self.parent[wierzcholek dziecko] = wiezcholek rodzic
         while not rp.is_shutdown():
 
 
@@ -155,10 +199,10 @@ class RRT_star(GridMap):
             if rrt_star.check_if_valid(random_point_in_self_step, closest_point):
                 rrt_star.checking_connections(random_point_in_self_step)
 
+                # rrt_star.rewire(random_point_in_self_step)
+
             self.publish_search()
-            rp.sleep(0.50)
-
-
+            rp.sleep(0.050)
 
 
 if __name__ == '__main__':
