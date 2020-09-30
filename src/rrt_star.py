@@ -131,41 +131,31 @@ class RRT_star(GridMap):
         lowest_cost = neighbour_list[0][0]
         # add lowest cost do cost dict
         self.parent_distance[neighbour_list[0][1]] = lowest_cost
-        # print("random point",neighbour_list[0][1], "cost to start", lowest_cost, "distance to neighbour", lowest_cost - self.parent_distance[neighbour_list[0][2]])
         # add point with lowest cost to parent dict
         self.parent[neighbour_list[0][1]] = neighbour_list[0][2]
-        # print("rodzic", self.parent[neighbour_list[0][1]], "tego wierzcholka ", neighbour_list[0][1] , "neighbour", neighbour_list[0][2])
-        # print("1", neighbour_list)
-
-        rrt_star.rewire(neighbour_list)
 
 
-    def rewire(self, neighbour_list):
+        rrt_star.rewire()
+
+
+    def rewire(self, ):
         '''
         Rewire every 20 points
         '''
-        # print(self.parent_distance)
-        # print(self.parent)
-        print("test")
-        print(len(self.parent))
+        print("Number of points:", len(self.parent))
         if (len(self.parent)%20) == 0:
             for i1, parent1 in enumerate(self.parent):
                 for i2, parent2 in enumerate(self.parent):
                     if parent1 != self.start and parent2 != self.start:
-                        distance = np.sqrt((parent1[0] - parent2[0]) ** 2 + (
-                                    parent1[1] - parent2[1]) ** 2) + self.parent_distance[parent2]
-                        # choice points in self.neighborhood_step
-                        # print(distance, self.parent_distance[parent2], self.parent_distance[parent1])
-                        if distance < self.parent_distance[parent1]\
+                        distance_to_parent = np.sqrt((parent1[0] - parent2[0]) ** 2 + (
+                                    parent1[1] - parent2[1]) ** 2)
+                        distance_to_start = distance_to_parent + self.parent_distance[parent2]
+                        if distance_to_start < self.parent_distance[parent1]\
                                 and parent1 != parent2 \
-                                and distance < self.neighborhood_step\
+                                and distance_to_parent < self.neighborhood_step\
                                 and rrt_star.check_if_valid(parent1, parent2):
-                            print("--------------------------------------")
-                            print(parent1, parent2, "new dist", distance, "old dist",self.parent_distance[parent1])
-                            self.parent_distance[parent1] = distance
+                            self.parent_distance[parent1] = distance_to_start
                             self.parent[parent1] = parent2
-
-        print("--------------------------------------")
 
 
 
@@ -173,22 +163,7 @@ class RRT_star(GridMap):
         print("RRT*")
         self.parent[self.start] = None
         self.parent_distance[self.start] = 0
-        # print("test")
-        # print(self.parent)
-        # print(self.parent_distance)
-        path = []
 
-        test_dic = {}
-        test_dic[(1, 2)] = 0
-        test_dic[(1, 3)] = 2
-        test_dic[(2, 2)] = 1
-        test_dic[(3, 2)] = 2
-        # print(test_dic)
-
-        # self.parent { klucz,                wartosc   }
-        # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
-        # self.parent[key] = value
-        # self.parent[wierzcholek dziecko] = wiezcholek rodzic
         while not rp.is_shutdown():
 
 
@@ -198,8 +173,6 @@ class RRT_star(GridMap):
 
             if rrt_star.check_if_valid(random_point_in_self_step, closest_point):
                 rrt_star.checking_connections(random_point_in_self_step)
-
-                # rrt_star.rewire(random_point_in_self_step)
 
             self.publish_search()
             rp.sleep(0.050)
