@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 import rospy as rp
+import numpy as np
 from visualization_msgs.msg import Marker
+from nav_msgs.msg import OccupancyGrid, Path
 
 
 class Point:
     def __init__(self, x, y, name, color):
-        self.pub = rp.Publisher('point_' + name, Marker, queue_size=10)
-        self.marker = Marker()
+        self.resolution = None
+        self.width = None
+        self.height = None
 
+        self.pub = rp.Publisher('point_' + name, Marker, queue_size=10)
+
+        self.marker = Marker()
         self.marker.header.frame_id = "map"
         self.marker.header.stamp = rp.Time.now()
         self.marker.ns = name
@@ -31,17 +37,25 @@ class Point:
         self.marker.color.b = color[2]
         self.marker.color.a = 0.5
 
+
+
     def publish(self):
         self.pub.publish(self.marker)
 
+def map_callback(data):
+    width = data.info.width * data.info.resolution
+    height = data.info.height * data.info.resolution
 
-if __name__ == '__main__':
-    rp.init_node('points', log_level=rp.DEBUG)
-    #st = Point(1.2, 1.2, "start", (0.0, 1.0, 0.0))
-    #en = Point(2.8, 2.8, "end", (1.0, 0.0, 0.0))
-    st = Point(1.3, 0.7, "start", (0.0, 1.0, 0.0))
-    en = Point(2.5, 1.3, "end", (1.0, 0.0, 0.0))
+    st = Point(0.4, height/2, "start", (0.0, 1.0, 0.0))
+    en = Point(width-0.5, height/2, "end", (1.0, 0.0, 0.0))
     while not rp.is_shutdown():
         st.publish()
         en.publish()
         rp.sleep(0.5)
+
+if __name__ == '__main__':
+    rp.init_node('points', log_level=rp.DEBUG)
+    size = rp.Subscriber('map', OccupancyGrid, map_callback)
+    rp.sleep(5.5)
+
+

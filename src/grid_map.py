@@ -5,7 +5,6 @@ from geometry_msgs.msg import PoseStamped, Point
 from nav_msgs.msg import OccupancyGrid, Path
 from visualization_msgs.msg import Marker, MarkerArray
 
-
 class GridMap(object):
     def __init__(self):
         self.map = None
@@ -29,6 +28,7 @@ class GridMap(object):
         while self.map is None or self.start is None or self.end is None:
             rp.sleep(0.1)
         print("Object initialized!")
+
 
     def map_callback(self, data):
         self.resolution = data.info.resolution
@@ -76,7 +76,6 @@ class GridMap(object):
             add_point(v)
         self.search_pub.publish(marker)
 
-
     def prm_publish_connections(self):
         marker = Marker()
         def add_point(p):
@@ -99,8 +98,6 @@ class GridMap(object):
             add_point(point1)
             add_point(point2)
         self.prm_connections_pub.publish(marker)
-
-
 
     def publish_points(self):
         marker = Marker()
@@ -148,3 +145,12 @@ class GridMap(object):
 
     def search(self):
         return NotImplementedError()
+
+
+
+
+
+
+
+
+
