@@ -14,16 +14,26 @@ class RRT_star(GridMap):
         self.parent_distance = {}
         self.step = 0.2
         self.neighborhood_step = 0.3
+        self.rewire_number = 20
 
     def random_point(self):
+        """
+        Draws random point in 2D
+
+        :return: point in 2D
+        """
         x = self.width * np.random.random(1)
         y = self.height * np.random.random(1)
-        # x = round(x, 4)
-        # y = round(y, 4)
         point = (x[0], y[0])
         return point
 
     def find_closest(self, pos):
+        """
+        Finds the closest vertex in the graph to the pos argument
+
+        :param pos: point id 2D
+        :return: vertex from graph in 2D closest to the pos
+        """
         pkt = pos
         punkt = (pkt[0], pkt[1])
         min = 1000  # duza wartosc
@@ -44,6 +54,13 @@ class RRT_star(GridMap):
         return closest
 
     def check_if_valid(self, a, b):
+        """
+        Checks if the segment connecting a and b lies in the free space.
+
+        :param a: point in 2D
+        :param b: point in 2D
+        :return: boolean
+        """
         ilosc_probek = 100
         dlugosc = np.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
@@ -92,6 +109,13 @@ class RRT_star(GridMap):
         return in_free_space
 
     def new_pt(self, pt, closest):
+        """
+        Finds last point in the free space on the segment connecting closest with pt
+
+        :param pt: point in 2D
+        :param closest: vertex in the tree (point in 2D)
+        :return: point in 2D
+        """
         b = pt
         a = closest
         dlugosc = np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
@@ -106,13 +130,17 @@ class RRT_star(GridMap):
         if (b[0] < a[0]):
             Xc = (-1 * ((self.step * abs(b[0] - a[0])) / (dlugosc))) + a[0]
 
-        # Xc = round(Xc, 4)
-        # Yc = round(Yc, 4)
+
         pt = (Xc, Yc)
         return pt
 
-
     def checking_connections(self, random_point_in_self_step):
+        """
+        Checks the connection between points in the graph and random_point_in_self_step.
+        Adds the point with the lowest cost of getting to start to the graph
+
+        :param random_point_in_self_step: point in 2D in distance self_step from closest point in graph
+        """
         neighbour_list = []
         for i, neighbour in enumerate(self.parent):
             # calculate distance/cost from random point to neighborhod
@@ -124,7 +152,6 @@ class RRT_star(GridMap):
                     cost = distance + self.parent_distance[neighbour]
                     # add cost to cost list
                     neighbour_list.append((cost, random_point_in_self_step, neighbour))
-        # print("number of neighbours ", len(neighbour_list))
         # find lowes cost
         neighbour_list = sorted(neighbour_list)
         # if rrt_star.check_if_valid(cost_list[0][1], cost_list[0][2]):
@@ -134,16 +161,19 @@ class RRT_star(GridMap):
         # add point with lowest cost to parent dict
         self.parent[neighbour_list[0][1]] = neighbour_list[0][2]
 
-
+        # rewire
         rrt_star.rewire()
 
 
-    def rewire(self, ):
+    def rewire(self):
         '''
-        Rewire every 20 points
+        Every 20 new points, it checks the connections between the points in the graph.
+        If there is a connection with a lower cost of getting to start than the present one,
+        it changes the order of the points in the graph.
         '''
-        print("Number of points:", len(self.parent))
-        if (len(self.parent)%20) == 0:
+
+        # print("Number of points:", len(self.parent))
+        if (len(self.parent)%self.rewire_number) == 0:
             for i1, parent1 in enumerate(self.parent):
                 for i2, parent2 in enumerate(self.parent):
                     if parent1 != self.start and parent2 != self.start:
@@ -160,6 +190,13 @@ class RRT_star(GridMap):
 
 
     def search(self):
+        """
+        RRT star search algorithm for start point self.start and desired state self.end.
+        Saves the search tree in the self.parent dictionary, with key value pairs representing segments
+        (key is the child vertex, and value is its parent vertex).
+        Uses self.publish_search() and self.publish_path(path) to publish the search tree and the final path respectively.
+        """
+
         print("RRT*")
         self.parent[self.start] = None
         self.parent_distance[self.start] = 0
@@ -172,19 +209,18 @@ class RRT_star(GridMap):
             if rrt_star.check_if_valid(random_point_in_self_step, closest_point):
                 rrt_star.checking_connections(random_point_in_self_step)
 
-
-
             last_point = closest_point
             if rrt_star.check_if_valid(self.end, closest_point):
                 self.parent[random_point_in_self_step] = self.end
                 print("End point found")
                 break
 
-                
             self.publish_search()
+
             # delay for better view
             rp.sleep(0.050)
 
+        # Path
         path.append(self.end)
         path.append(last_point)
         while last_point != self.start:
