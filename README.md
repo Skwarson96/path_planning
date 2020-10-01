@@ -8,16 +8,14 @@ Rapidly-exploring Random Trees algorithm
 
 Launch with:
 - $ roslaunch path_planning rrt_vertices.launch
-Youtube link:
-- https://www.youtube.com/watch?v=xVmbLGaD8RE
+- Youtube link: https://www.youtube.com/watch?v=xVmbLGaD8RE
 
 ### 2. RRT
 Rapidly-exploring Random Trees algorithm
 
 Launch with:
 -  $ roslaunch path_planning rrt.launch
-Youtube link:
-- https://www.youtube.com/watch?v=gDZGdrtanZA&feature=youtu.be
+- Youtube link: https://www.youtube.com/watch?v=gDZGdrtanZA&feature=youtu.be
 
 ### 3. PRM
 Probabilistic Road Map algorithm
