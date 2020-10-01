@@ -12,6 +12,7 @@ class RRT(GridMap):
     def check_if_valid(self, a, b):
         """
         Checks if the segment connecting a and b lies in the free space.
+
         :param a: point in 2D
         :param b: point in 2D
         :return: boolean
@@ -67,13 +68,14 @@ class RRT(GridMap):
     def random_point(self):
         """
         Draws random point in 2D
+
         :return: point in 2D
         """
+
         x = self.width * np.random.random(1)
         y = self.height * np.random.random(1)
         x = round(x, 4)
         y = round(y, 4)
-        #point = (x, y)
 
         return np.array([x, y])
 
@@ -82,6 +84,7 @@ class RRT(GridMap):
         Finds the closest point in the graph (closest vertex or closes point on edge) to the pos argument
         If the point is on the edge, modifies the graph to obtain the valid graph with the new point and two new edges
         connecting existing vertices
+
         :param pos: point id 2D
         :return: point from graph in 2D closest to the pos
         """
@@ -108,12 +111,8 @@ class RRT(GridMap):
             closest = (x2, y2)
         else:
             closest = (x, y)
-            # print(self.parent)
             return closest
 
-
-        # self.edge_points: a          b              punkt
-        #                random   closest(korzen)    edge point
         for points in self.edge_points:
             if (points[4] == x2) and (points[5] == y2):
                 self.parent[(x2, y2)] = (points[2], points[3])
@@ -173,10 +172,16 @@ class RRT(GridMap):
         return pt
 
     def edged_points(self, randomPoint, closestPoint):
+        """
+        Finds closest points on existing tree edges
+
+        :param randomPoint: point in 2D
+        :param closestPoint: vertex in the tree (point in 2D)
+        :return: boolean
+        """
         ilosc_probek = 100
         a = randomPoint
         b = closestPoint
-        # print("a", a, "b", b)
         dlugosc = np.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
         lista = []
@@ -230,24 +235,16 @@ class RRT(GridMap):
         (key is the child vertex, and value is its parent vertex).
         Uses self.publish_search() and self.publish_path(path) to publish the search tree and the final path respectively.
         """
+
+        print("RRT")
         self.parent[self.start] = None
         path = []
         while not rp.is_shutdown():
-            # print("----------------------------------")
             randomPoint = rrt.random_point()
-            # print("RANDOM POINT", randomPoint)
             closestPoint = rrt.find_closest(randomPoint)
-            # print("CLOSEST POINT", closestPoint)
             rrt.edged_points(randomPoint, closestPoint)
             new_point = rrt.new_pt(randomPoint, closestPoint)
-            # print("NEW POINT", new_point)
-            # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
-
-
-
-
             self.parent[(new_point[0], new_point[1])] = closestPoint
-            # print(self.parent)
             self.publish_search()
 
             last_point = closestPoint
@@ -259,7 +256,6 @@ class RRT(GridMap):
 
             rp.sleep(0.10)
 
-
         path.append(self.end)
         path.append(last_point)
         while last_point != self.start:
@@ -269,8 +265,6 @@ class RRT(GridMap):
                 break
         self.publish_path(path)
         print("Path printed")
-
-
 
 
 if __name__ == '__main__':

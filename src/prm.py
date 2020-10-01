@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-from __future__ import print_function
 import rospy as rp
 from grid_map import GridMap
 import numpy as np
 import sys
-from path_planning.srv import *
 
 np.random.seed(444)
 
@@ -12,15 +10,14 @@ np.random.seed(444)
 class PRM(GridMap):
     def __init__(self):
         super(PRM, self).__init__()
-        self.radius = 1.0
+        self.radius = 2.0
         self.k = 6
         self.number_of_points = 100
 
     def sampling(self,):
-        # print("Mapa: ", np.shape(self.map))
-        # print(self.map[0][0])
-        # print("Szerokosc: ", self.width)
-        # print("Wysokosc: ", self.height)
+        """
+        Draws a given number of points
+        """
 
         for i in range(self.number_of_points):
             x = self.width * np.random.random(1)
@@ -33,6 +30,10 @@ class PRM(GridMap):
                 self.points_list.append((x[0], y[0]))
 
     def find_closest_in_radius(self,):
+        """
+        Finds points within a given radius
+        """
+
         distance_list = []
         for index1, point1 in enumerate(self.points_list):
             for index2, point2 in enumerate(self.points_list):
@@ -51,6 +52,10 @@ class PRM(GridMap):
                 distance_list.append(distance)
 
     def find_k_nearest(self,):
+        """
+        Finds the k nearest points
+        """
+
         distance_list_with_points = []
         checked_points = []
         for index1, point1 in enumerate(self.points_list):
@@ -67,6 +72,13 @@ class PRM(GridMap):
             distance_list_with_points = []
 
     def check_if_valid(self, point1, point2):
+        """
+        Checks if the segment connecting a and b lies in the free space.
+
+        :param point1: point in 2D
+        :param point2: point in 2D
+        :return: boolean
+        """
         ilosc_probek = 100
         dlugosc = np.sqrt((point1[0] - point2[0]) * (point1[0] - point2[0]) + (point1[1] - point2[1]) * (point1[1] - point2[1]))
 
@@ -114,8 +126,10 @@ class PRM(GridMap):
         in_free_space = True
         return in_free_space
 
-    # find closest points to start point
     def closest_start(self):
+        """
+        Find closest points to start point
+        """
         for point1 in self.points_list:
             distance = np.sqrt((point1[0] - self.start[0]) ** 2 + (point1[1] - self.start[1]) ** 2)
             if (distance <= self.radius) and \
@@ -123,8 +137,10 @@ class PRM(GridMap):
                     prm.check_if_valid(point1, self.start):
                 self.prm_points_to_connection.append((point1, self.start))
 
-    # find closest points to end point
     def closest_end(self):
+        """
+        Find closest points to end point
+        """
         for point1 in self.points_list:
             distance = np.sqrt((point1[0] - self.end[0]) ** 2 + (point1[1] - self.end[1]) ** 2)
             if (distance <= self.radius) and \
@@ -133,6 +149,13 @@ class PRM(GridMap):
                 self.prm_points_to_connection.append((point1, self.end))
 
     def get_neighbours(self, current_point):
+        """
+        Make a list of all neighbors of current_point in the graph
+
+        :param current_point: point in 2D
+        :return: list of neighbors
+        """
+
         neighbours = []
         for point1, point2 in self.prm_points_to_connection:
             if current_point == point1:
@@ -142,11 +165,15 @@ class PRM(GridMap):
         return neighbours
 
     def find_shortest_path(self):
+        """
+        Finds the shortest path using the A * algorithm
+        """
+
         G = {}
         F = {}
         G[self.start] = 0
         F[self.start] = np.sqrt((self.start[0] - self.end[0]) ** 2 + (self.start[1] - self.end[1]) ** 2)
-        closed_pionts = set()
+        closed_points = set()
         open_points = set([self.start])
         came_from = {}
 
@@ -168,10 +195,10 @@ class PRM(GridMap):
                 return path, F[self.end]
 
             open_points.remove(current_point)
-            closed_pionts.add(current_point)
+            closed_points.add(current_point)
 
             for neighbour in prm.get_neighbours(current_point):
-                if neighbour in closed_pionts:
+                if neighbour in closed_points:
                     continue
                 candidate_G = G[current_point] + np.sqrt((current_point[0] - neighbour[0]) ** 2 + (current_point[1] - neighbour[1]) ** 2)
                 if neighbour not in open_points:
@@ -183,8 +210,16 @@ class PRM(GridMap):
                 H = np.sqrt((neighbour[0] - self.end[0]) ** 2 + (neighbour[1] - self.end[1]) ** 2)
                 F[neighbour] = G[neighbour] + H
 
-
     def search(self,):
+        """
+        PRM search algorithm for start point self.start and desired state self.end.
+        Saves the search tree in the self.parent dictionary, with key value pairs representing segments
+        (key is the child vertex, and value is its parent vertex).
+        Uses self.publish_points() to publish points, self.prm_publish_connections() to publish the search tree
+        and self.publish_path(path) to publish path.
+        The algorithm has two possibilities, it can search for neighbors within a given radius or for the k nearest neighbors
+        """
+
         print("PRM")
 
         self.parent[self.start] = None
@@ -193,13 +228,12 @@ class PRM(GridMap):
 
         # show points on map
         self.publish_points()
+        rp.sleep(5.0)
 
         # find closest points
         # prm.find_closest_in_radius()
-
+        # k nearest points
         prm.find_k_nearest()
-
-
 
         # add start and end points to list
         prm.closest_start()
@@ -207,14 +241,13 @@ class PRM(GridMap):
 
         # draw lines between points in radius
         self.prm_publish_connections()
-
+        rp.sleep(5.0)
 
         # A star algorithm to find shortest path
         path = prm.find_shortest_path()
 
         self.publish_path(path[0])
         print("Path printed")
-
 
 if __name__ == '__main__':
     prm = PRM()

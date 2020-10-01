@@ -7,9 +7,6 @@ np.random.seed(444)
 
 
 class RRT(GridMap):
-
-
-
     def __init__(self):
         super(RRT, self).__init__()
         self.step = 0.1
@@ -17,6 +14,7 @@ class RRT(GridMap):
     def check_if_valid(self, a, b):
         """
         Checks if the segment connecting a and b lies in the free space.
+
         :param a: point in 2D
         :param b: point in 2D
         :return: boolean
@@ -73,11 +71,10 @@ class RRT(GridMap):
         in_free_space = True
         return in_free_space
 
-
-
     def random_point(self):
         """
         Draws random point in 2D
+
         :return: point in 2D
         """
         x = self.width * np.random.random(1)
@@ -109,8 +106,6 @@ class RRT(GridMap):
                 x = wartosc[0]
                 y = wartosc[1]
 
-        x = round(x, 4)
-        y = round(y, 4)
         closest = (x, y)
         return closest
 
@@ -136,29 +131,23 @@ class RRT(GridMap):
         if (b[0] < a[0]):
             Xc = (-1 * ((self.step * abs(b[0] - a[0])) / (dlugosc))) + a[0]
 
-        Xc = round(Xc, 4)
-        Yc = round(Yc, 4)
         pt = (Xc, Yc)
         return pt
 
     def search(self):
         """
-        RRT search algorithm for start point self.start and desired state self.end.
+        RRT (vertices) search algorithm for start point self.start and desired state self.end.
         Saves the search tree in the self.parent dictionary, with key value pairs representing segments
         (key is the child vertex, and value is its parent vertex).
         Uses self.publish_search() and self.publish_path(path) to publish the search tree and the final path respectively.
         """
 
-        # self.parent { klucz,                wartosc   }
-        # self.parent { wierzcholek dziecko , wiezcholek rodzic   }
-
-        #           KLUCZ         WARTOSC
         self.parent[self.start] = None
         path = []
         while not rp.is_shutdown():
-            # DZIECKO
+            # Child
             randomPoint = rrt.random_point()
-            # RODZIC
+            # Parent
             closestPoint = rrt.find_closest(randomPoint)
 
             punkt_w_odleglosci_self_step = rrt.new_pt(randomPoint, closestPoint)
@@ -172,8 +161,7 @@ class RRT(GridMap):
                 self.parent[punkt_w_odleglosci_self_step] = self.end
                 break
 
-
-            rp.sleep(0.1)
+            rp.sleep(0.05)
 
         print("Search complete")
         path.append(self.end)
