@@ -163,10 +163,8 @@ class RRT_star(GridMap):
         print("RRT*")
         self.parent[self.start] = None
         self.parent_distance[self.start] = 0
-
+        path = []
         while not rp.is_shutdown():
-
-
             random_point = rrt_star.random_point()
             closest_point = rrt_star.find_closest(random_point)
             random_point_in_self_step = rrt_star.new_pt(random_point, closest_point)
@@ -174,8 +172,29 @@ class RRT_star(GridMap):
             if rrt_star.check_if_valid(random_point_in_self_step, closest_point):
                 rrt_star.checking_connections(random_point_in_self_step)
 
+
+
+            last_point = closest_point
+            if rrt_star.check_if_valid(self.end, closest_point):
+                self.parent[random_point_in_self_step] = self.end
+                print("End point found")
+                break
+
+                
             self.publish_search()
+            # delay for better view
             rp.sleep(0.050)
+
+        path.append(self.end)
+        path.append(last_point)
+        while last_point != self.start:
+            last_point = self.parent[last_point]
+            path.append(last_point)
+            if last_point == self.start:
+                break
+        self.publish_path(path)
+        print("Path printed")
+
 
 
 if __name__ == '__main__':
