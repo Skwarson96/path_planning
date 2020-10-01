@@ -17,6 +17,7 @@ Rapidly-exploring Random Trees algorithm
 
 launch with:
 -  $ roslaunch path_planning rrt.launch
+
 youtube link:
 - -----------
 
@@ -31,6 +32,7 @@ You can choose between two types of Neighbor Finding. By radius and k nearest ne
 ```
 launch with:
 - $ roslaunch path_planning prm.launch
+
 youtube link:
 - -----------
 
@@ -39,6 +41,7 @@ Rapidly-exploring Random Trees star algorithm
 
 launch with:
 - $ roslaunch path_planning rrt_star.launch
+
 youtube link:
 - -----------
 
