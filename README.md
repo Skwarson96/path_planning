@@ -28,15 +28,13 @@ You can choose between two types of Neighbor Finding. By radius and k nearest ne
 ```
 Launch with:
 - $ roslaunch path_planning prm.launch
-Youtube link:
-- https://www.youtube.com/watch?v=gbuO4SnTqKk
+- Youtube link: https://www.youtube.com/watch?v=gbuO4SnTqKk
 
 ### 4. RRT star
 Rapidly-exploring Random Trees star algorithm
 
 Launch with:
 - $ roslaunch path_planning rrt_star.launch
-Youtube link:
-- https://www.youtube.com/watch?v=cctHpKwkIsg
+- Youtube link: https://www.youtube.com/watch?v=cctHpKwkIsg
 
 
