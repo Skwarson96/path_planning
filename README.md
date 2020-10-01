@@ -6,19 +6,17 @@ The aim of the task was to implement space searching algorithms
 ### 1. RRT vertices
 Rapidly-exploring Random Trees algorithm
 
-launch with:
+Launch with:
 - $ roslaunch path_planning rrt_vertices.launch
-
-youtube link:
+Youtube link:
 - https://www.youtube.com/watch?v=xVmbLGaD8RE
 
 ### 2. RRT
 Rapidly-exploring Random Trees algorithm
 
-launch with:
+Launch with:
 -  $ roslaunch path_planning rrt.launch
-
-youtube link:
+Youtube link:
 - https://www.youtube.com/watch?v=gDZGdrtanZA&feature=youtu.be
 
 ### 3. PRM
@@ -30,19 +28,17 @@ You can choose between two types of Neighbor Finding. By radius and k nearest ne
         # k nearest points
         prm.find_k_nearest()
 ```
-launch with:
+Launch with:
 - $ roslaunch path_planning prm.launch
-
-youtube link:
+Youtube link:
 - https://www.youtube.com/watch?v=gbuO4SnTqKk
 
 ### 4. RRT star
 Rapidly-exploring Random Trees star algorithm
 
-launch with:
+Launch with:
 - $ roslaunch path_planning rrt_star.launch
-
-youtube link:
+Youtube link:
 - https://www.youtube.com/watch?v=cctHpKwkIsg
 
 
