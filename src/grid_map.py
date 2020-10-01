@@ -120,9 +120,9 @@ class GridMap(object):
         marker.color.b = 0.1
         marker.color.a = 0.5
         # scale
-        marker.scale.x = 0.01
-        marker.scale.y = 0.01
-        marker.scale.z = 0.01
+        marker.scale.x = 0.1
+        marker.scale.y = 0.1
+        marker.scale.z = 0.1
 
         self.points_pub.publish(marker)
 

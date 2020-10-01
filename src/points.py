@@ -28,8 +28,8 @@ class Point:
         self.marker.pose.orientation.y = 0
         self.marker.pose.orientation.z = 0
         self.marker.pose.orientation.w = 1.0
-        self.marker.scale.x = 0.05
-        self.marker.scale.y = 0.05
+        self.marker.scale.x = 0.2
+        self.marker.scale.y = 0.2
         self.marker.scale.z = 0.01
 
         self.marker.color.r = color[0]
@@ -56,6 +56,6 @@ def map_callback(data):
 if __name__ == '__main__':
     rp.init_node('points', log_level=rp.DEBUG)
     size = rp.Subscriber('map', OccupancyGrid, map_callback)
-    rp.sleep(5.5)
+    rp.sleep(1.5)
 
 
