@@ -10,7 +10,7 @@ launch with:
 - $ roslaunch path_planning rrt_vertices.launch
 
 youtube link:
-- ----------
+- https://www.youtube.com/watch?v=xVmbLGaD8RE
 
 ### 2. RRT
 Rapidly-exploring Random Trees algorithm
@@ -19,7 +19,7 @@ launch with:
 -  $ roslaunch path_planning rrt.launch
 
 youtube link:
-- -----------
+- https://www.youtube.com/watch?v=gDZGdrtanZA&feature=youtu.be
 
 ### 3. PRM
 Probabilistic Road Map algorithm
@@ -34,7 +34,7 @@ launch with:
 - $ roslaunch path_planning prm.launch
 
 youtube link:
-- -----------
+- https://www.youtube.com/watch?v=gbuO4SnTqKk
 
 ### 4. RRT star
 Rapidly-exploring Random Trees star algorithm
@@ -43,6 +43,6 @@ launch with:
 - $ roslaunch path_planning rrt_star.launch
 
 youtube link:
-- -----------
+- https://www.youtube.com/watch?v=cctHpKwkIsg
 
 
