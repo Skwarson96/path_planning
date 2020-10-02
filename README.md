@@ -1,7 +1,7 @@
 # path_planning
 
 The repository is an extension of the homework in the subject of Methods and Algorithms of Motion Planning. 
-The aim of the task was to implement space searching algorithms
+The aim of the task was to implement space searching algorithms. Template: https://github.com/Kicajowyfreestyle/mapr_5_student
 
 ### 1. RRT vertices
 Rapidly-exploring Random Trees algorithm
